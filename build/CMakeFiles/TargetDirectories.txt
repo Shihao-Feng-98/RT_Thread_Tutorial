@@ -1,0 +1,3 @@
+/home/feng_shihao/fsh_file/rt_pthread_tutorial/build/CMakeFiles/rebuild_cache.dir
+/home/feng_shihao/fsh_file/rt_pthread_tutorial/build/CMakeFiles/edit_cache.dir
+/home/feng_shihao/fsh_file/rt_pthread_tutorial/build/CMakeFiles/main.dir

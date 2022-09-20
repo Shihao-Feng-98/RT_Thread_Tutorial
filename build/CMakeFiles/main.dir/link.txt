@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -std=c++11 -Wall -g   CMakeFiles/main.dir/src/rt_thread.cpp.o  -o main  -lpthread 
