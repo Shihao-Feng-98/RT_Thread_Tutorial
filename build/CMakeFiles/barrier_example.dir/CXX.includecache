@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/feng_shihao/fsh_file/rt_pthread_tutorial/src/barrier_example.cpp
+pthread.h
+-
+unistd.h
+-
+iostream
+-
+

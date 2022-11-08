@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -std=c++11 -Wall -g   CMakeFiles/barrier_example.dir/src/barrier_example.cpp.o  -o barrier_example  -lpthread 

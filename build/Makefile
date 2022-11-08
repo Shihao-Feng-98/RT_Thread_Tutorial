@@ -56,17 +56,6 @@ CMAKE_BINARY_DIR = /home/feng_shihao/fsh_file/rt_pthread_tutorial/build
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
@@ -77,6 +66,17 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -111,44 +111,84 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named main
+# Target rules for targets named multi_thread_example
 
 # Build rule for target.
-main: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 main
-.PHONY : main
+multi_thread_example: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 multi_thread_example
+.PHONY : multi_thread_example
 
 # fast build rule for target.
-main/fast:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-.PHONY : main/fast
+multi_thread_example/fast:
+	$(MAKE) -f CMakeFiles/multi_thread_example.dir/build.make CMakeFiles/multi_thread_example.dir/build
+.PHONY : multi_thread_example/fast
 
-src/rt_thread.o: src/rt_thread.cpp.o
+#=============================================================================
+# Target rules for targets named rt_example
 
-.PHONY : src/rt_thread.o
+# Build rule for target.
+rt_example: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 rt_example
+.PHONY : rt_example
+
+# fast build rule for target.
+rt_example/fast:
+	$(MAKE) -f CMakeFiles/rt_example.dir/build.make CMakeFiles/rt_example.dir/build
+.PHONY : rt_example/fast
+
+src/multi_thread_example.o: src/multi_thread_example.cpp.o
+
+.PHONY : src/multi_thread_example.o
 
 # target to build an object file
-src/rt_thread.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rt_thread.cpp.o
-.PHONY : src/rt_thread.cpp.o
+src/multi_thread_example.cpp.o:
+	$(MAKE) -f CMakeFiles/multi_thread_example.dir/build.make CMakeFiles/multi_thread_example.dir/src/multi_thread_example.cpp.o
+.PHONY : src/multi_thread_example.cpp.o
 
-src/rt_thread.i: src/rt_thread.cpp.i
+src/multi_thread_example.i: src/multi_thread_example.cpp.i
 
-.PHONY : src/rt_thread.i
+.PHONY : src/multi_thread_example.i
 
 # target to preprocess a source file
-src/rt_thread.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rt_thread.cpp.i
-.PHONY : src/rt_thread.cpp.i
+src/multi_thread_example.cpp.i:
+	$(MAKE) -f CMakeFiles/multi_thread_example.dir/build.make CMakeFiles/multi_thread_example.dir/src/multi_thread_example.cpp.i
+.PHONY : src/multi_thread_example.cpp.i
 
-src/rt_thread.s: src/rt_thread.cpp.s
+src/multi_thread_example.s: src/multi_thread_example.cpp.s
 
-.PHONY : src/rt_thread.s
+.PHONY : src/multi_thread_example.s
 
 # target to generate assembly for a file
-src/rt_thread.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rt_thread.cpp.s
-.PHONY : src/rt_thread.cpp.s
+src/multi_thread_example.cpp.s:
+	$(MAKE) -f CMakeFiles/multi_thread_example.dir/build.make CMakeFiles/multi_thread_example.dir/src/multi_thread_example.cpp.s
+.PHONY : src/multi_thread_example.cpp.s
+
+src/rt_thread_example.o: src/rt_thread_example.cpp.o
+
+.PHONY : src/rt_thread_example.o
+
+# target to build an object file
+src/rt_thread_example.cpp.o:
+	$(MAKE) -f CMakeFiles/rt_example.dir/build.make CMakeFiles/rt_example.dir/src/rt_thread_example.cpp.o
+.PHONY : src/rt_thread_example.cpp.o
+
+src/rt_thread_example.i: src/rt_thread_example.cpp.i
+
+.PHONY : src/rt_thread_example.i
+
+# target to preprocess a source file
+src/rt_thread_example.cpp.i:
+	$(MAKE) -f CMakeFiles/rt_example.dir/build.make CMakeFiles/rt_example.dir/src/rt_thread_example.cpp.i
+.PHONY : src/rt_thread_example.cpp.i
+
+src/rt_thread_example.s: src/rt_thread_example.cpp.s
+
+.PHONY : src/rt_thread_example.s
+
+# target to generate assembly for a file
+src/rt_thread_example.cpp.s:
+	$(MAKE) -f CMakeFiles/rt_example.dir/build.make CMakeFiles/rt_example.dir/src/rt_thread_example.cpp.s
+.PHONY : src/rt_thread_example.cpp.s
 
 # Help Target
 help:
@@ -156,12 +196,16 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... main"
-	@echo "... src/rt_thread.o"
-	@echo "... src/rt_thread.i"
-	@echo "... src/rt_thread.s"
+	@echo "... multi_thread_example"
+	@echo "... rebuild_cache"
+	@echo "... rt_example"
+	@echo "... src/multi_thread_example.o"
+	@echo "... src/multi_thread_example.i"
+	@echo "... src/multi_thread_example.s"
+	@echo "... src/rt_thread_example.o"
+	@echo "... src/rt_thread_example.i"
+	@echo "... src/rt_thread_example.s"
 .PHONY : help
 
 

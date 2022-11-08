@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -std=c++11 -Wall -g   CMakeFiles/sem_example.dir/src/sem_example.cpp.o  -o sem_example  -lpthread 

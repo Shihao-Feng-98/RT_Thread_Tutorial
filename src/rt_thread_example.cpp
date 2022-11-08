@@ -1,4 +1,7 @@
-// #include <memory> // unique_ptr c++11 make_unique c+14
+/*
+Example for single real-time thread with CPU binding
+*/
+
 #include <pthread.h> // -lpthread
 #include <sys/mman.h> // mlockall(MCL_CURRENT|MCL_FUTURE)
 #include <unistd.h> // sleep
@@ -16,11 +19,30 @@ int iteration = 0;
 // ======== Main Control Thread Function ========  
 void* main_control_loop(void* argc)
 {
+    cpu_set_t mask; // CPU核心的集合
+    CPU_ZERO(&mask); // 清空集合
+    CPU_SET(0, &mask); // 将CPU核心0加入到集合中
+    if(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) != 0){
+        cout << "Cound not set CPU affinity\n";
+    }
+    // else{ // just for check
+    //     cpu_set_t affinity; 
+    //     CPU_ZERO(&affinity); 
+    //     pthread_getaffinity_np(pthread_self(), sizeof(affinity), &affinity);
+    //     for (int i = 0; i < 16; i++)
+    //     {
+    //         if (CPU_ISSET(i, &affinity)) // 判断和哪个CPU绑定
+    //         {
+    //             cout << "Thread is running in processor " << i << endl;
+    //         }
+    //     }
+    // }
+
     CTimer timer_step, timer_total;
     cout << "[Main Control Thread]: thread start\n";
 
     // run periodic task
-    while(time_since_run <= 1.)
+    while(time_since_run <= 0.02)
     {
         // timer reset
         timer_step.reset();
