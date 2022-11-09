@@ -61,7 +61,7 @@ bool PeriodicRtTask::_init_task(int priority)
         return false;
     }
     // 设置调度策略和线程优先级
-    ret = pthread_attr_setschedpolicy(&_attr, SCHED_RR); // 调度算法 RR
+    ret = pthread_attr_setschedpolicy(&_attr, SCHED_FIFO); // 调度算法 RR 或者 FIFO
     if (ret) {
         cout << _thread_name << " setschedpolicy failed\n";
         return false;

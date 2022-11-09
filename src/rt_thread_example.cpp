@@ -32,7 +32,7 @@ void* main_control_loop(void* argc)
         
         // do something 
         robot.control_task(); 
-        robot.motor_task(); 
+        robot.motor_task_FR(); 
 
         time_since_run += dt_controller;
         iteration++;

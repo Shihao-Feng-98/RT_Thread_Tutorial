@@ -36,3 +36,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_executable(multi_thread_example src/multi_thread_example.cpp)
 # 链接库 -l
 target_link_libraries(multi_thread_example PRIVATE pthread)
+
+# # 输出可执行文件 
+# add_executable(multi_thread_example2 src/multi_thread_example2.cpp)
+# # 链接库 -l
+# target_link_libraries(multi_thread_example2 PRIVATE pthread)
