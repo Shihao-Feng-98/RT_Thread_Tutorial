@@ -16,7 +16,7 @@
 using namespace std;
 
 // global variables
-pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t g_mutex_FR = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t g_not_empty = PTHREAD_COND_INITIALIZER;
 pthread_cond_t g_not_full = PTHREAD_COND_INITIALIZER;
 
@@ -40,12 +40,12 @@ void* producer_func(void* argc)
     const char* who = (char*)argc;
     for(;;)
     {
-        pthread_mutex_lock(&g_mutex);
+        pthread_mutex_lock(&g_mutex_FR);
         while (size >= CAPCITY) // 仓库满了，不能再生产了
         {
             cout << "The warehouse is full, thread[" << who << "]should not be produced\n";
             // 等到仓库不满信号，再释放锁
-            pthread_cond_wait(&g_not_full, &g_mutex); // 阻塞
+            pthread_cond_wait(&g_not_full, &g_mutex_FR); // 阻塞
             // 被唤醒后，重新获得锁
             cout << "The warehouse is not full, thread[" << who << "]can be produced\n";
         }
@@ -54,7 +54,7 @@ void* producer_func(void* argc)
         stock[size++] = prod;
         
         pthread_cond_signal(&g_not_empty);
-        pthread_mutex_unlock(&g_mutex);
+        pthread_mutex_unlock(&g_mutex_FR);
         usleep ((rand () % 100) * 1000);
     }
 
@@ -67,12 +67,12 @@ void* customer_func(void* argc)
     const char* who = (char*)argc;
     for(;;)
     {
-        pthread_mutex_lock(&g_mutex);
+        pthread_mutex_lock(&g_mutex_FR);
         while (size == 0) // 仓库空了，不能继续消费了
         {
             cout << "The warehouse is empty, thread[" << who << "]should not be consumed\n";
             // 等到仓库不空信号，再释放锁
-            pthread_cond_wait(&g_not_empty, &g_mutex); // 阻塞
+            pthread_cond_wait(&g_not_empty, &g_mutex_FR); // 阻塞
             // 被唤醒后，重新获得锁
             cout << "The warehouse is not empty, thread[" << who << "]can be consumed\n";
         }
@@ -80,7 +80,7 @@ void* customer_func(void* argc)
         show(who, "-->", prod);
 
         pthread_cond_signal(&g_not_full);
-        pthread_mutex_unlock(&g_mutex);
+        pthread_mutex_unlock(&g_mutex_FR);
         usleep ((rand () % 100) * 1000);
     }
 

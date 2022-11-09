@@ -18,25 +18,30 @@ using namespace std;
 #include <Robot.h> // for debug
 
 
-pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t g_mutex_FR = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t g_mutex_FL = PTHREAD_MUTEX_INITIALIZER;
 // 控制计算完成，可以进行电机指令的收发
 pthread_cond_t g_cond_ctrl_finished = PTHREAD_COND_INITIALIZER; 
 // 四路电机指令收发完成，可以进行控制计算
-pthread_cond_t g_cond_sr_finished = PTHREAD_COND_INITIALIZER; 
+pthread_cond_t g_cond_FR_finished = PTHREAD_COND_INITIALIZER; 
+pthread_cond_t g_cond_FL_finished = PTHREAD_COND_INITIALIZER; 
 
 // 时间参数
 const double g_dt = 0.00333; //3.33ms
 double g_time_since_run = 0.;
-// int g_iteration = 0;
+int g_iteration = 0;
 // 标志位
 bool g_stop_all = false; 
-bool g_ctrl_finished = false;
-bool g_FR_finished = false;
+// bool g_ctrl_finished = false;
+bool g_FR_finished = true;
+bool g_FL_finished = true;
+
 
 Robot robot;
 CTimer g_timer_total;
 
 // 加锁 解锁 条件变量激活 10-20us
+// TODO: 原子操作 
 
 // ======== Main Control Thread Function ========  
 void* main_control_loop(void* argc)
@@ -46,24 +51,29 @@ void* main_control_loop(void* argc)
     g_timer_total.reset();
     // init 
     timer_step.reset();
-    pthread_mutex_lock(&g_mutex); 
+    pthread_mutex_lock(&g_mutex_FR); 
+    // pthread_mutex_lock(&g_mutex_FL); 
     robot.control_task();
-    // cout << "control_task: " << g_iteration << endl;
-    pthread_mutex_unlock(&g_mutex); 
+    cout << "control_task: " << g_iteration << endl;
     pthread_cond_broadcast(&g_cond_ctrl_finished);
-    g_ctrl_finished = true; 
+    g_FR_finished = false;
+    // pthread_mutex_unlock(&g_mutex_FL); 
+    pthread_mutex_unlock(&g_mutex_FR); 
 
     // run periodic task
     while(g_time_since_run < 5.){
         // 加锁
-        pthread_mutex_lock(&g_mutex); 
+        pthread_mutex_lock(&g_mutex_FR); 
+        // pthread_mutex_lock(&g_mutex_FL); 
 
-        while(!g_FR_finished){
-            // 如果子线程未完成，则解锁并等待条件变量
-            pthread_cond_wait(&g_cond_sr_finished, &g_mutex);
+        while(!g_FR_finished){ // condition is false
+            pthread_cond_wait(&g_cond_FR_finished, &g_mutex_FR);
         }
+        // 如果子线程未全部完成，则解锁并等待条件变量
+        // pthread_cond_wait(&g_cond_FL_finished, &g_mutex_FL);
+
         g_time_since_run += g_dt;
-        // g_iteration++;
+        g_iteration++;
         // wait the rest of period (us)
         // cout << timer_step.end() << " us\n";
         while (timer_step.end() < g_dt*1000*1000);
@@ -72,15 +82,16 @@ void* main_control_loop(void* argc)
 
         // 执行计算(读变量，写变量)
         robot.control_task();
-        // cout << "control_task: " << g_iteration << endl;
+        cout << "control_task: " << g_iteration << endl;
 
-        // 解锁
-        pthread_mutex_unlock(&g_mutex); 
         // 通知所有子线程执行
         pthread_cond_broadcast(&g_cond_ctrl_finished);
+        g_FR_finished = false;
+        // g_FL_finished = false;
 
-        g_ctrl_finished = true; 
-        g_FR_finished = false; 
+        // 解锁
+        // pthread_mutex_unlock(&g_mutex_FL); 
+        pthread_mutex_unlock(&g_mutex_FR); 
     }
     g_stop_all = true;
 
@@ -93,29 +104,58 @@ void* FR_control_loop(void* argc)
     // run periodic task
     while(!g_stop_all){
         // 加锁
-        pthread_mutex_lock(&g_mutex); 
+        pthread_mutex_lock(&g_mutex_FR); 
 
-        while(!g_ctrl_finished){
+        while(g_FR_finished){ // condition is false
             // 如果主线程未完成，则解锁并等待条件变量
-            pthread_cond_wait(&g_cond_ctrl_finished, &g_mutex);
+            pthread_cond_wait(&g_cond_ctrl_finished, &g_mutex_FR);
         }
 
         // 执行收发(读变量，写变量)
         robot.motor_task();
-        // cout << "motor_task: " << g_iteration << endl;
+        cout << "FR_task: " << g_iteration << endl;
+
+        // 通知主线程执行
+        pthread_cond_signal(&g_cond_FR_finished); 
+        g_FR_finished = true;
 
         // 解锁
-        pthread_mutex_unlock(&g_mutex); 
-        // 通知主线程执行
-        pthread_cond_broadcast(&g_cond_sr_finished); 
-        g_FR_finished = true; 
-        g_ctrl_finished = false; 
+        pthread_mutex_unlock(&g_mutex_FR); 
     }
-    cout << "desired time: " << g_time_since_run << " s" << endl;
-    cout << "actul time: " << g_timer_total.end()/1000/1000 << " s\n"; 
+    double end = g_timer_total.end()/1000/1000;
+    cout << "Actul time: " << end << " s\n"; 
 
     return nullptr;
 }
+
+// // ======== FL Control Thread Function ========  
+// void* FL_control_loop(void* argc)
+// {
+//     // run periodic task
+//     while(!g_stop_all){
+//         // 加锁
+//         pthread_mutex_lock(&g_mutex_FL); 
+
+//         // while(g_FL_finished){
+//             // 如果主线程未完成，则解锁并等待条件变量
+//             pthread_cond_wait(&g_cond_ctrl_finished, &g_mutex_FL);
+//         // }
+
+//         // 执行收发(读变量，写变量)
+//         robot.motor_task();
+//         cout << "FL_task: " << g_iteration << endl;
+
+//         // 通知主线程执行
+//         pthread_cond_signal(&g_cond_FL_finished); 
+//         // g_FL_finished = false;
+//         // 解锁
+//         pthread_mutex_unlock(&g_mutex_FL); 
+//     }
+//     // double end = g_timer_total.end()/1000/1000;
+//     // cout << "Actul time: " << end << " s\n"; 
+
+//     return nullptr;
+// }
 
 
 int main(int argc, char** argv)
@@ -130,14 +170,18 @@ int main(int argc, char** argv)
     }
     
     // 主控制线程
-    PeriodicRtTask *FR_control_task = new PeriodicRtTask("[FR Control Thread]", 95, FR_control_loop, 1);
-    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop, 0);
+    PeriodicRtTask *FR_control_task = new PeriodicRtTask("[FR Control Thread]", 95, FR_control_loop, 2);
+    // PeriodicRtTask *FL_control_task = new PeriodicRtTask("[FL Control Thread]", 95, FL_control_loop, 3);
+    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop, 4);
 
     sleep(1); 
 
     // 析构函数会join线程，等待线程结束
     delete FR_control_task;
+    // delete FL_control_task;
     delete main_control_task;
+
+    cout << "Desired time: " << g_time_since_run << " s" << endl;
 
     return 0;
 }

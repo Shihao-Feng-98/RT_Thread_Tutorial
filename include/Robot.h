@@ -29,7 +29,7 @@ Robot::~Robot()
 
 void Robot::control_task()
 {
-    usleep(200); // 0.2ms
+    usleep(150); // 0.15ms
     // 读反馈写指令
     cmd[0] = state_fb[0] + 1;
     cmd[1] = state_fb[1] + 1;

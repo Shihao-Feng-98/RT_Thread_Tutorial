@@ -19,6 +19,7 @@
         "sstream": "cpp",
         "streambuf": "cpp",
         "array": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "chrono": "cpp"
     }
 }

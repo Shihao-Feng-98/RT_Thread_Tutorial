@@ -15,7 +15,7 @@ using namespace std;
 
 // global variables
 int g_num = 10;
-pthread_mutex_t g_mutex;//互斥锁
+pthread_mutex_t g_mutex_FR;//互斥锁
 
 
 // ======== Thread Function ========  
@@ -26,11 +26,11 @@ void* thread_func(void* argc)
     {
         sleep(1);
 
-        pthread_mutex_lock(&g_mutex);
+        pthread_mutex_lock(&g_mutex_FR);
 
         cout << "[Thread " << pthread_self() << "]: " << g_num-- << endl;
         
-        pthread_mutex_unlock(&g_mutex);
+        pthread_mutex_unlock(&g_mutex_FR);
     }
 
     return nullptr;
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     }
     
 
-    pthread_mutex_init(&g_mutex, NULL); // 动态初始化，记得销毁
+    pthread_mutex_init(&g_mutex_FR, NULL); // 动态初始化，记得销毁
     // 创建线程
     PeriodicRtTask *task_1 = new PeriodicRtTask("[Thread 1]", 50, thread_func);
     PeriodicRtTask *task_2 = new PeriodicRtTask("[Thread 2]", 50, thread_func);
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     delete task_1;
     delete task_2;
 
-    pthread_mutex_destroy(&g_mutex);
+    pthread_mutex_destroy(&g_mutex_FR);
 
     return 0;
 }

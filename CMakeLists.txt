@@ -27,10 +27,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # # 链接库 -l
 # target_link_libraries(barrier_example PRIVATE pthread)
 
-# 输出可执行文件 
-add_executable(rt_example src/rt_thread_example.cpp)
-# 链接库 -l
-target_link_libraries(rt_example PRIVATE pthread)
+# # 输出可执行文件 
+# add_executable(rt_example src/rt_thread_example.cpp)
+# # 链接库 -l
+# target_link_libraries(rt_example PRIVATE pthread)
 
 # 输出可执行文件 
 add_executable(multi_thread_example src/multi_thread_example.cpp)

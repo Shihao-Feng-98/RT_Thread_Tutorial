@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -std=c++11 -Wall -g   CMakeFiles/cond_example.dir/src/cond_example.cpp.o  -o cond_example  -lpthread 

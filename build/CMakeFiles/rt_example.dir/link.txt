@@ -1,1 +1,1 @@
-/usr/bin/c++   -O3 -std=c++11 -Wall -g   CMakeFiles/rt_example.dir/src/rt_thread_example.cpp.o  -o rt_example  -lpthread 
+/usr/bin/c++  -O3 -std=c++11 -Wall -g CMakeFiles/rt_example.dir/src/rt_thread_example.cpp.o -o rt_example  -lpthread 

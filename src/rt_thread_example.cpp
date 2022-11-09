@@ -10,55 +10,41 @@ using namespace std;
 // utils
 #include <C_timer.h>
 #include <periodic_rt_task.h>
+#include <Robot.h>
 
 // gobal variable
-double dt_controller = 0.001;
+double dt_controller = 0.00333; // 3.33ms
 double time_since_run = 0.; 
 int iteration = 0;
 
 // ======== Main Control Thread Function ========  
 void* main_control_loop(void* argc)
 {
-    cpu_set_t mask; // CPU核心的集合
-    CPU_ZERO(&mask); // 清空集合
-    CPU_SET(0, &mask); // 将CPU核心0加入到集合中
-    if(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) != 0){
-        cout << "Cound not set CPU affinity\n";
-    }
-    // else{ // just for check
-    //     cpu_set_t affinity; 
-    //     CPU_ZERO(&affinity); 
-    //     pthread_getaffinity_np(pthread_self(), sizeof(affinity), &affinity);
-    //     for (int i = 0; i < 16; i++)
-    //     {
-    //         if (CPU_ISSET(i, &affinity)) // 判断和哪个CPU绑定
-    //         {
-    //             cout << "Thread is running in processor " << i << endl;
-    //         }
-    //     }
-    // }
-
     CTimer timer_step, timer_total;
-    cout << "[Main Control Thread]: thread start\n";
+    Robot robot;
+    // cout << "[Main Control Thread]: thread start\n";
 
+    timer_total.reset();
     // run periodic task
-    while(time_since_run <= 0.02)
+    while(time_since_run < 5.)
     {
-        // timer reset
         timer_step.reset();
+        
+        // do something 
+        robot.control_task(); 
+        robot.motor_task(); 
+
         time_since_run += dt_controller;
         iteration++;
-
-        // do something
-        cout << "iteration: " << iteration << endl;
-
+        // cout << timer_step.end() << endl;
         // wait the rest of period (us)
         while (timer_step.end() < dt_controller*1000*1000);
     }
+    double end = timer_total.end()/1000;
+    cout << "Actual time: " << end << " ms\n";
+    cout << "Desired time: " << time_since_run*1000 << " ms\n";
 
-    cout << "Total time: " << timer_total.end()/1000 << " ms\n";
-
-    cout << "[Main Control Thread]: thread end\n";
+    // cout << "[Main Control Thread]: thread end\n";
     return nullptr;
 }
 
@@ -74,7 +60,7 @@ int main(int argc, char** argv)
     }
     
     // 主控制线程
-    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop);
+    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 99, main_control_loop);
     sleep(1); 
     // 析构函数会join线程，等待子线程结束
     delete main_control_task;

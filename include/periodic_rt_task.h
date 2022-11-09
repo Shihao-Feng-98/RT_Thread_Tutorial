@@ -43,7 +43,7 @@ PeriodicRtTask::PeriodicRtTask(string thread_name, int priority, void* (*thread_
         cout << thread_name << " init failed\n";
     }
     // 线程绑定CPU(i7-1260p (8+4)核心16线程)
-    if (CPU_id >= 0 and CPU_id < 16) {
+    if (CPU_id >= 0 && CPU_id < 16) {
         CPU_ZERO(&_mask); // 清空集合
         CPU_SET(CPU_id, &_mask); // 将CPU核心加入到集合中
         if(pthread_setaffinity_np(pthread_self(), sizeof(_mask), &_mask) != 0){
