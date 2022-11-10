@@ -1,1 +1,1 @@
-/usr/bin/c++   -O3 -std=c++11 -Wall -g   CMakeFiles/multi_thread_example2.dir/src/multi_thread_example2.cpp.o  -o multi_thread_example2  -lpthread 
+/usr/bin/c++  -O3 -std=c++11 -Wall -g CMakeFiles/multi_thread_example2.dir/src/multi_thread_example2.cpp.o -o multi_thread_example2  -lpthread 

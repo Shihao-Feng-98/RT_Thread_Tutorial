@@ -1,5 +1,5 @@
 /*
-Example for single real-time thread with CPU binding
+Example for single real-time thread
 */
 
 #include <pthread.h> // -lpthread
@@ -12,16 +12,15 @@ using namespace std;
 #include <periodic_rt_task.h>
 #include <Robot.h>
 
-// gobal variable
-double dt_controller = 0.00333; // 3.33ms
-double time_since_run = 0.; 
-int iteration = 0;
-
 // ======== Main Control Thread Function ========  
 void* main_control_loop(void* argc)
 {
     CTimer timer_step, timer_total;
     Robot robot;
+
+    double dt = 0.00333; // 3.33ms
+    double time_since_run = 0.; 
+    int iteration = 0;
     // cout << "[Main Control Thread]: thread start\n";
 
     timer_total.reset();
@@ -34,15 +33,15 @@ void* main_control_loop(void* argc)
         robot.control_task(); 
         robot.motor_task_FR(); 
 
-        time_since_run += dt_controller;
-        iteration++;
-        // cout << timer_step.end() << endl;
+        time_since_run += dt;
+        ++iteration;
+        cout << timer_step.end() << " us" << endl;
         // wait the rest of period (us)
-        while (timer_step.end() < dt_controller*1000*1000);
+        while (timer_step.end() < dt*1000*1000);
     }
-    double end = timer_total.end()/1000;
-    cout << "Actual time: " << end << " ms\n";
+    cout << "Actual time: " << timer_total.end()/1000 << " ms\n";
     cout << "Desired time: " << time_since_run*1000 << " ms\n";
+    cout << "Iteration: " << iteration << endl;
 
     // cout << "[Main Control Thread]: thread end\n";
     return nullptr;
@@ -60,7 +59,7 @@ int main(int argc, char** argv)
     }
     
     // 主控制线程
-    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 99, main_control_loop);
+    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop);
     sleep(1); 
     // 析构函数会join线程，等待子线程结束
     delete main_control_task;

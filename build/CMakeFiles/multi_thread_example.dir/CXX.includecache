@@ -29,6 +29,8 @@ pthread.h
 /home/feng_shihao/fsh_file/rt_pthread_tutorial/src/multi_thread_example.cpp
 pthread.h
 -
+semaphore.h
+-
 sys/mman.h
 -
 unistd.h

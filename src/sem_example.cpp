@@ -17,39 +17,74 @@ using namespace std;
 
 // global variables
 int g_num = 10;
+pthread_barrier_t g_barr;
 sem_t g_sem; // 信号量
-
+CTimer timer;
 
 // ======== Thread Function ========  
-void* thread_func(void* argc)
+void* thread_1_func(void* argc)
 {
-    pthread_t tid = pthread_self();
     int sval;
+    
+    pthread_barrier_wait(&g_barr);
 
+    timer.reset();
     // do something
-    while(g_num > 0)
+    while(g_num > 1)
     {
-        sem_getvalue(&g_sem, &sval);
-        cout << "[Thread " << tid << "]: wait for connection(" 
-            << sval << " rest)" << endl;
-        
         sem_wait(&g_sem); // 信号量-1
 
         sem_getvalue(&g_sem, &sval);
-        cout << "[Thread " << tid << "]: success connection(" 
+        cout << "[Thread 1]: success connection(" 
             << sval << " rest), " << g_num-- << endl;
         sleep(1);
 
         sem_post(&g_sem); // 信号量+1
-
-        sem_getvalue(&g_sem, &sval);
-        cout << "[Thread " << tid << "]: free connection(" 
-            << sval << " rest)" << endl;
     }
-
     return nullptr;
 }
 
+void* thread_2_func(void* argc)
+{
+    int sval;
+    
+    pthread_barrier_wait(&g_barr);
+
+    // do something
+    while(g_num > 1)
+    {
+        sem_wait(&g_sem); // 信号量-1
+
+        sem_getvalue(&g_sem, &sval);
+        cout << "[Thread 2]: success connection(" 
+            << sval << " rest), " << g_num-- << endl;
+        sleep(1);
+
+        sem_post(&g_sem); // 信号量+1
+    }
+    return nullptr;
+}
+
+void* thread_3_func(void* argc)
+{
+    int sval;
+    
+    pthread_barrier_wait(&g_barr);
+
+    // do something
+    while(g_num > 1)
+    {
+        sem_wait(&g_sem); // 信号量-1
+
+        sem_getvalue(&g_sem, &sval);
+        cout << "[Thread 3]: success connection(" 
+            << sval << " rest), " << g_num-- << endl;
+        sleep(1);
+
+        sem_post(&g_sem); // 信号量+1
+    }
+    return nullptr;
+}
 
 int main(int argc, char **argv)
 {
@@ -62,26 +97,27 @@ int main(int argc, char **argv)
         return -2;
     }
     
+    // 初始化屏障
+    pthread_barrier_init(&g_barr, NULL, 3);
     // 初始化信号量
-    if (sem_init(&g_sem, 0, 3) != 0) {
-        cout << "sem_init error!" << endl;
-    }
+    sem_init(&g_sem, 0, 3);
 
     // 创建线程
-    PeriodicRtTask *task_1 = new PeriodicRtTask("[Thread 1]", 50, thread_func);
-    PeriodicRtTask *task_2 = new PeriodicRtTask("[Thread 2]", 50, thread_func);
-    PeriodicRtTask *task_3 = new PeriodicRtTask("[Thread 3]", 50, thread_func);
+    PeriodicRtTask *task_1 = new PeriodicRtTask("[Thread 1]", 50, thread_1_func);
+    PeriodicRtTask *task_2 = new PeriodicRtTask("[Thread 2]", 50, thread_2_func);
+    PeriodicRtTask *task_3 = new PeriodicRtTask("[Thread 3]", 50, thread_3_func);
     
     sleep(1); 
     
-    CTimer timer;
-    timer.reset();
     // 析构函数会join线程，等待子线程结束
     delete task_1;
     delete task_2;
     delete task_3;
     cout << timer.end()/1000/1000 << " s\n";
+    cout << "g_num: " << g_num << endl;
 
+    // 销毁屏障
+    pthread_barrier_destroy(&g_barr);
     // 销毁信号量
     sem_destroy(&g_sem);
 
