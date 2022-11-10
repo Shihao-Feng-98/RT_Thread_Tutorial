@@ -27,6 +27,7 @@ sem_t g_sem;
 pthread_mutex_t g_mutex_FR = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t g_mutex_FL = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t g_mutex_RR = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t g_mutex_RL = PTHREAD_MUTEX_INITIALIZER;
 // 控制计算完成，可以进行电机指令的收发
 pthread_cond_t g_cond_ctrl_finished = PTHREAD_COND_INITIALIZER; 
 
@@ -35,6 +36,7 @@ bool g_stop_all = false;
 bool g_FR_finished = true;
 bool g_FL_finished = true;
 bool g_RR_finished = true;
+bool g_RL_finished = true;
 
 Robot robot;
 CTimer g_timer_total;
@@ -46,7 +48,7 @@ void* main_control_loop(void* argc)
     const double dt = 0.00333; // 3.33ms
     double time_since_run = 0.;
     int iteration = 0;
-    int sval; // 信号量数量
+    int sval; 
     
     g_timer_total.reset();
     // init
@@ -55,6 +57,7 @@ void* main_control_loop(void* argc)
     pthread_mutex_lock(&g_mutex_FR); 
     pthread_mutex_lock(&g_mutex_FL); 
     pthread_mutex_lock(&g_mutex_RR); 
+    pthread_mutex_lock(&g_mutex_RL); 
     
     robot.control_task();
     ++iteration;
@@ -64,6 +67,8 @@ void* main_control_loop(void* argc)
     g_FL_finished = false;
     g_FR_finished = false;
     g_RR_finished = false;
+    g_RL_finished = false;
+    pthread_mutex_unlock(&g_mutex_RL); 
     pthread_mutex_unlock(&g_mutex_RR); 
     pthread_mutex_unlock(&g_mutex_FL); 
     pthread_mutex_unlock(&g_mutex_FR); 
@@ -86,6 +91,7 @@ void* main_control_loop(void* argc)
         pthread_mutex_lock(&g_mutex_FR); 
         pthread_mutex_lock(&g_mutex_FL); 
         pthread_mutex_lock(&g_mutex_RR); 
+        pthread_mutex_lock(&g_mutex_RL); 
 
         // run task
         robot.control_task();
@@ -97,11 +103,14 @@ void* main_control_loop(void* argc)
         g_FL_finished = false;
         g_FR_finished = false;
         g_RR_finished = false;
+        g_RL_finished = false;
         // sem reset
         sem_post(&g_sem); // +1
         sem_post(&g_sem); // +1
         sem_post(&g_sem); // +1
+        sem_post(&g_sem); // +1
 
+        pthread_mutex_unlock(&g_mutex_RL); 
         pthread_mutex_unlock(&g_mutex_RR); 
         pthread_mutex_unlock(&g_mutex_FL); 
         pthread_mutex_unlock(&g_mutex_FR); 
@@ -181,7 +190,7 @@ void* RR_control_loop(void* argc)
         }
 
         robot.motor_task_RR();
-        // cout << "FL_task: " << ++iteration_RR << endl;
+        // cout << "RR_task: " << ++iteration_RR << endl;
 
         g_RR_finished = true;
         
@@ -193,6 +202,30 @@ void* RR_control_loop(void* argc)
     return nullptr;
 }
 
+// ======== RL Control Thread Function ========  
+void* RL_control_loop(void* argc)
+{
+    int iteration_RL = 0;
+
+    while(!g_stop_all){
+        pthread_mutex_lock(&g_mutex_RL); 
+
+        while(g_RL_finished){
+            pthread_cond_wait(&g_cond_ctrl_finished, &g_mutex_RL);
+        }
+
+        robot.motor_task_RL();
+        // cout << "RL_task: " << ++iteration_RL << endl;
+
+        g_RL_finished = true;
+        
+        sem_wait(&g_sem); // -1
+
+        pthread_mutex_unlock(&g_mutex_RL);
+    }
+    cout << "RL actual time: " << g_timer_total.end()/1000/1000 << " s\n";
+    return nullptr;
+}
 
 int main(int argc, char** argv)
 {
@@ -205,13 +238,14 @@ int main(int argc, char** argv)
         return -2;
     }
 
-    sem_init(&g_sem, 0, 3);
+    sem_init(&g_sem, 0, 4);
 
     // creat threads
     PeriodicRtTask *FR_control_task = new PeriodicRtTask("[FR Control Thread]", 95, FR_control_loop, 2);
     PeriodicRtTask *FL_control_task = new PeriodicRtTask("[FL Control Thread]", 95, FL_control_loop, 3);
     PeriodicRtTask *RR_control_task = new PeriodicRtTask("[RR Control Thread]", 95, RR_control_loop, 4);
-    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop, 5);
+    PeriodicRtTask *RL_control_task = new PeriodicRtTask("[RL Control Thread]", 95, RL_control_loop, 5);
+    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop, 6);
 
     sleep(1); 
 
@@ -219,6 +253,7 @@ int main(int argc, char** argv)
     delete FR_control_task;
     delete FL_control_task;
     delete RR_control_task;
+    delete RL_control_task;
     delete main_control_task;
 
     sem_destroy(&g_sem);
