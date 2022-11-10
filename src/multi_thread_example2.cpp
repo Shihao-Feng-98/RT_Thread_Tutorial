@@ -1,6 +1,6 @@
 /*
 多线程控制任务的demo, 不进行线程同步
-问题: 线程执行有的快有的慢,会影响控制性能
+只进行开始的同步，其余靠时钟
 */
 
 #include <pthread.h> // -lpthread
@@ -13,23 +13,24 @@ using namespace std;
 #include <periodic_rt_task.h>
 #include <Robot.h> // for debug
 
-// 标志位
-bool g_stop_all = false; 
+pthread_barrier_t g_barr_start; // 线程开始标志位
+bool g_stop_all = false; // 线程停止标志位
 Robot robot;
 
 // ======== Main Control Thread Function ========  
 void* main_control_loop(void* argc)
 {   
-    CTimer timer_main, timer_total;
+    CTimer timer_step, timer_total;
     const double dt = 0.00333; // 3.33ms
     double time_since_run = 0.;
     int iteration_main = 0;
     
-    timer_total.reset();
+    pthread_barrier_wait(&g_barr_start);
 
+    timer_total.reset();
     // run periodic task
-    while(time_since_run < 60.){
-        timer_main.reset();
+    while(time_since_run < 1.){
+        timer_step.reset();
 
         // 执行计算(读变量，写变量)
         robot.control_task();
@@ -37,7 +38,7 @@ void* main_control_loop(void* argc)
         ++iteration_main;
         time_since_run += dt;
         // wait the rest of period (us)
-        while (timer_main.end() < dt*1000*1000);
+        while (timer_step.end() < dt*1000*1000);
     }
     g_stop_all = true;
     cout << "Main actual time: " << timer_total.end()/1000/1000 << " s\n";
@@ -53,6 +54,8 @@ void* FR_control_loop(void* argc)
     CTimer timer_FR;
     const double dt = 0.00333; // 3.33ms
     int iteration_FR = 0;
+
+    pthread_barrier_wait(&g_barr_start);
 
     // run periodic task
     while(!g_stop_all){
@@ -77,6 +80,8 @@ void* FL_control_loop(void* argc)
     const double dt = 0.00333; // 3.33ms
     int iteration_FL = 0;
 
+    pthread_barrier_wait(&g_barr_start);
+
     // run periodic task
     while(!g_stop_all){
         timer_FL.reset();
@@ -100,6 +105,8 @@ void* RR_control_loop(void* argc)
     const double dt = 0.00333; // 3.33ms
     int iteration_RR = 0;
 
+    pthread_barrier_wait(&g_barr_start);
+
     // run periodic task
     while(!g_stop_all){
         timer_RR.reset();
@@ -122,6 +129,8 @@ void* RL_control_loop(void* argc)
     CTimer timer_RL;
     const double dt = 0.00333; // 3.33ms
     int iteration_RL = 0;
+
+    pthread_barrier_wait(&g_barr_start);
 
     // run periodic task
     while(!g_stop_all){
@@ -150,21 +159,25 @@ int main(int argc, char** argv)
         return -2;
     }
 
-    // 主控制线程
+    // 初始化屏障
+    pthread_barrier_init(&g_barr_start, NULL, 5);
+
+    // 创建线程
+    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop, 6);
     PeriodicRtTask *FR_control_task = new PeriodicRtTask("[FR Control Thread]", 95, FR_control_loop, 2);
     PeriodicRtTask *FL_control_task = new PeriodicRtTask("[FL Control Thread]", 95, FL_control_loop, 3);
     PeriodicRtTask *RR_control_task = new PeriodicRtTask("[RR Control Thread]", 95, RR_control_loop, 4);
     PeriodicRtTask *RL_control_task = new PeriodicRtTask("[RL Control Thread]", 95, RL_control_loop, 5);
-    PeriodicRtTask *main_control_task = new PeriodicRtTask("[Main Control Thread]", 95, main_control_loop, 6);
 
+    // 等待线程创建
     sleep(1); 
 
-    // 析构函数会join线程，等待线程结束
-    delete main_control_task;
-    delete FR_control_task;
-    delete FL_control_task;
-    delete RR_control_task;
+    // 合并线程
     delete RL_control_task;
+    delete RR_control_task;
+    delete FL_control_task;
+    delete FR_control_task;
+    delete main_control_task;
 
     return 0;
 }

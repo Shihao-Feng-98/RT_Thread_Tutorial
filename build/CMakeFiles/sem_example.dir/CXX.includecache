@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/C_timer.h
+iostream
+-
+sys/time.h
+-
+
+../include/periodic_rt_task.h
+iostream
+-
+string
+-
+pthread.h
+-
+
+/home/feng_shihao/fsh_file/rt_pthread_tutorial/src/sem_example.cpp
+pthread.h
+-
+semaphore.h
+-
+sys/mman.h
+-
+unistd.h
+-
+iostream
+-
+C_timer.h
+-
+periodic_rt_task.h
+-
+

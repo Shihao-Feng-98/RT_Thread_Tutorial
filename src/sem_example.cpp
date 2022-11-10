@@ -12,6 +12,7 @@
 #include <iostream>
 using namespace std;
 // utils
+#include <C_timer.h>
 #include <periodic_rt_task.h>
 
 // global variables
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
     }
     
     // 初始化信号量
-    if (sem_init(&g_sem, 0, 2) != 0) {
+    if (sem_init(&g_sem, 0, 3) != 0) {
         cout << "sem_init error!" << endl;
     }
 
@@ -73,10 +74,13 @@ int main(int argc, char **argv)
     
     sleep(1); 
     
+    CTimer timer;
+    timer.reset();
     // 析构函数会join线程，等待子线程结束
     delete task_1;
     delete task_2;
     delete task_3;
+    cout << timer.end()/1000/1000 << " s\n";
 
     // 销毁信号量
     sem_destroy(&g_sem);
