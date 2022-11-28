@@ -13,17 +13,15 @@ using namespace std;
 // utils
 #include <C_timer.h>
 #include <periodic_rt_task.h>
-#include <Robot.h> // for debug
 
 pthread_barrier_t g_barr_start; // 线程开始标志位
 bool g_stop_all = false; // 线程停止标志位
-Robot robot;
 
 // ======== Main Control Thread Function ========  
 void* main_control_loop(void* argc)
 {   
     CTimer timer_step, timer_total;
-    const double dt = 0.00333; // 3.33ms
+    const double dt = 0.002; // 2ms
     double time_since_run = 0.;
     int iteration_main = 0;
     
@@ -35,7 +33,7 @@ void* main_control_loop(void* argc)
         timer_step.reset();
 
         // 执行计算(读变量，写变量)
-        robot.control_task();
+        usleep(800);
 
         ++iteration_main;
         time_since_run += dt;
@@ -54,7 +52,7 @@ void* main_control_loop(void* argc)
 void* FR_control_loop(void* argc)
 {
     CTimer timer_FR;
-    const double dt = 0.00333; // 3.33ms
+    const double dt = 0.002; 
     int iteration_FR = 0;
 
     pthread_barrier_wait(&g_barr_start);
@@ -64,7 +62,7 @@ void* FR_control_loop(void* argc)
         timer_FR.reset();
         
         // 执行收发(读变量，写变量)
-        robot.motor_task_FR();
+        usleep(800);
 
         ++iteration_FR;
         // wait the rest of period (us)
@@ -79,7 +77,7 @@ void* FR_control_loop(void* argc)
 void* FL_control_loop(void* argc)
 {
     CTimer timer_FL;
-    const double dt = 0.00333; // 3.33ms
+    const double dt = 0.002; 
     int iteration_FL = 0;
 
     pthread_barrier_wait(&g_barr_start);
@@ -89,7 +87,7 @@ void* FL_control_loop(void* argc)
         timer_FL.reset();
         
         // 执行收发(读变量，写变量)
-        robot.motor_task_FL();
+        usleep(800);
 
         ++iteration_FL;
         // wait the rest of period (us)
@@ -104,7 +102,7 @@ void* FL_control_loop(void* argc)
 void* RR_control_loop(void* argc)
 {
     CTimer timer_RR;
-    const double dt = 0.00333; // 3.33ms
+    const double dt = 0.002; 
     int iteration_RR = 0;
 
     pthread_barrier_wait(&g_barr_start);
@@ -114,7 +112,7 @@ void* RR_control_loop(void* argc)
         timer_RR.reset();
         
         // 执行收发(读变量，写变量)
-        robot.motor_task_RR();
+        usleep(800);
 
         ++iteration_RR;
         // wait the rest of period (us)
@@ -129,7 +127,7 @@ void* RR_control_loop(void* argc)
 void* RL_control_loop(void* argc)
 {
     CTimer timer_RL;
-    const double dt = 0.00333; // 3.33ms
+    const double dt = 0.002;
     int iteration_RL = 0;
 
     pthread_barrier_wait(&g_barr_start);
@@ -139,7 +137,7 @@ void* RL_control_loop(void* argc)
         timer_RL.reset();
         
         // 执行收发(读变量，写变量)
-        robot.motor_task_RL();
+        usleep(800);
 
         ++iteration_RL;
         // wait the rest of period (us)

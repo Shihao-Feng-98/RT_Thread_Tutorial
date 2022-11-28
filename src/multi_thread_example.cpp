@@ -19,7 +19,6 @@ using namespace std;
 // utils
 #include <C_timer.h>
 #include <periodic_rt_task.h>
-#include <Robot.h> // for debug
 
 // 信号量
 sem_t g_sem;
@@ -38,14 +37,13 @@ bool g_FL_finished = true;
 bool g_RR_finished = true;
 bool g_RL_finished = true;
 
-Robot robot;
 CTimer g_timer_total;
 
 // ======== Main Control Thread Function ========  
 void* main_control_loop(void* argc)
 {   
     CTimer timer_step;
-    const double dt = 0.00333; // 3.33ms
+    const double dt = 0.002; // 3.33ms
     double time_since_run = 0.;
     int iteration = 0;
     int sval; 
@@ -59,9 +57,11 @@ void* main_control_loop(void* argc)
     pthread_mutex_lock(&g_mutex_RR); 
     pthread_mutex_lock(&g_mutex_RL); 
     
-    robot.control_task();
+    // run task
+    usleep(800);
+    // cout << "control_task: " << iteration << endl;
     ++iteration;
-    // cout << "control_task: " << ++iteration << endl;
+    time_since_run += dt;
     
     pthread_cond_broadcast(&g_cond_ctrl_finished);
     g_FL_finished = false;
@@ -74,7 +74,7 @@ void* main_control_loop(void* argc)
     pthread_mutex_unlock(&g_mutex_FR); 
 
     // run periodic task
-    while(time_since_run < 5.){
+    while(time_since_run < 30.){
         // wait for child threads
         while(1){
             sem_getvalue(&g_sem, &sval);
@@ -94,8 +94,8 @@ void* main_control_loop(void* argc)
         pthread_mutex_lock(&g_mutex_RL); 
 
         // run task
-        robot.control_task();
-        // cout << "control_task: " << ++iteration << endl;
+        usleep(800);
+        // cout << "control_task: " << iteration << endl;
 
         // 通知所有子线程执行
         pthread_cond_broadcast(&g_cond_ctrl_finished);
@@ -125,7 +125,7 @@ void* main_control_loop(void* argc)
 // ======== FR Control Thread Function ========  
 void* FR_control_loop(void* argc)
 {
-    int iteration_FR = 0;
+    // int iteration_FR = 0;
 
     // run periodic task
     while(!g_stop_all){
@@ -137,7 +137,7 @@ void* FR_control_loop(void* argc)
         }
 
         // run task
-        robot.motor_task_FR();
+        usleep(800);
         // cout << "FR_task: " << ++iteration_FR << endl;
 
         // flag reset
@@ -154,7 +154,7 @@ void* FR_control_loop(void* argc)
 // ======== FL Control Thread Function ========  
 void* FL_control_loop(void* argc)
 {
-    int iteration_FL = 0;
+    // int iteration_FL = 0;
 
     while(!g_stop_all){
         pthread_mutex_lock(&g_mutex_FL); 
@@ -163,7 +163,8 @@ void* FL_control_loop(void* argc)
             pthread_cond_wait(&g_cond_ctrl_finished, &g_mutex_FL);
         }
 
-        robot.motor_task_FL();
+        // run task
+        usleep(800);
         // cout << "FL_task: " << ++iteration_FL << endl;
  
         g_FL_finished = true;
@@ -180,8 +181,8 @@ void* FL_control_loop(void* argc)
 // ======== RR Control Thread Function ========  
 void* RR_control_loop(void* argc)
 {
-    int iteration_RR = 0;
-
+    // int iteration_RR = 0;
+    
     while(!g_stop_all){
         pthread_mutex_lock(&g_mutex_RR); 
 
@@ -189,7 +190,8 @@ void* RR_control_loop(void* argc)
             pthread_cond_wait(&g_cond_ctrl_finished, &g_mutex_RR);
         }
 
-        robot.motor_task_RR();
+        // run task
+        usleep(800);
         // cout << "RR_task: " << ++iteration_RR << endl;
 
         g_RR_finished = true;
@@ -204,8 +206,8 @@ void* RR_control_loop(void* argc)
 
 // ======== RL Control Thread Function ========  
 void* RL_control_loop(void* argc)
-{
-    int iteration_RL = 0;
+{       
+    // int iteration_RL = 0;
 
     while(!g_stop_all){
         pthread_mutex_lock(&g_mutex_RL); 
@@ -214,7 +216,8 @@ void* RL_control_loop(void* argc)
             pthread_cond_wait(&g_cond_ctrl_finished, &g_mutex_RL);
         }
 
-        robot.motor_task_RL();
+        // run task
+        usleep(800);
         // cout << "RL_task: " << ++iteration_RL << endl;
 
         g_RL_finished = true;

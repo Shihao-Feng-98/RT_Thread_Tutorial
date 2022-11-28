@@ -12,12 +12,6 @@ iostream
 sys/time.h
 -
 
-../include/Robot.h
-unistd.h
--
-vector
--
-
 ../include/periodic_rt_task.h
 iostream
 -
@@ -38,7 +32,5 @@ iostream
 C_timer.h
 -
 periodic_rt_task.h
--
-Robot.h
 -
 
