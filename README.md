@@ -38,5 +38,7 @@ Due to some unknown reasons, you may need to disable the E-cores.
 Click F2 when start up, then enter the BIOS.
 
 (1) "power,performance and cooling" -> "External Ambient Temperature Tolerance" -> set "user defined"
+
 (2) "performance" -> "processor" -> "Active Atom Cores" -> set "0"
+
 (3) Click F10 to save and reboot
